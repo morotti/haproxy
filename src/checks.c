@@ -1584,16 +1584,22 @@ static int connect_conn_chk(struct task *t)
 		}
 		else if ((check->type) == PR_O2_HTTP_CHK) {
 			if (s->proxy->options2 & PR_O2_CHK_SNDST)
+			{
 				b_putblk(&check->bo, trash.area,
 					 httpchk_build_status_header(s, trash.area, trash.size));
+			}
 			/* set the host header per backend */
 			if (s->vhost)
+			{
 				b_putist(&check->bo, ist("Host: "));
 				b_putist(&check->bo, ist(s->vhost));
 				b_putist(&check->bo, ist("\r\n"));
+			}
 			/* prevent HTTP keep-alive when "http-check expect" is used */
 			if (s->proxy->options2 & PR_O2_EXP_TYPE)
+			{
 				b_putist(&check->bo, ist("Connection: close\r\n"));
+			}
 			b_putist(&check->bo, ist("\r\n"));
 			*b_tail(&check->bo) = '\0'; /* to make gdb output easier to read */
 		}
