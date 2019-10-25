@@ -1611,12 +1611,23 @@ static int connect_conn_chk(struct task *t)
 			memcpy(b_head(&check->bo) + 11, &gmt_time, 4);
 		}
 		else if ((check->type) == PR_O2_HTTP_CHK) {
+			if (s->proxy->http_check_send_hdr_name)
+			{
+				b_putist(&check->bo, ist(s->proxy->http_check_send_hdr_name));
+				b_putist(&check->bo, ist(": "));
+				b_putist(&check->bo, ist(s->id));
+				b_putist(&check->bo, ist("\r\n"));
+			}
 			if (s->proxy->options2 & PR_O2_CHK_SNDST)
+			{
 				b_putblk(&check->bo, trash.area,
 					 httpchk_build_status_header(s, trash.area, trash.size));
+			}
 			/* prevent HTTP keep-alive when "http-check expect" is used */
 			if (s->proxy->options2 & PR_O2_EXP_TYPE)
+			{
 				b_putist(&check->bo, ist("Connection: close\r\n"));
+			}
 			b_putist(&check->bo, ist("\r\n"));
 			*b_tail(&check->bo) = '\0'; /* to make gdb output easier to read */
 		}

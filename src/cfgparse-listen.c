@@ -261,6 +261,11 @@ int cfg_parse_listen(const char *file, int linenum, char **args, int kwm)
 			curproxy->server_id_hdr_name = strdup(defproxy.server_id_hdr_name);
 		}
 
+		if (defproxy.http_check_send_hdr_len) {
+			curproxy->http_check_send_hdr_len  = defproxy.http_check_send_hdr_len;
+			curproxy->http_check_send_hdr_name = strdup(defproxy.http_check_send_hdr_name);
+		}
+
 		/* initialize error relocations */
 		for (rc = 0; rc < HTTP_ERR_SIZE; rc++)
 			chunk_dup(&curproxy->errmsg[rc], &defproxy.errmsg[rc]);
@@ -484,6 +489,8 @@ int cfg_parse_listen(const char *file, int linenum, char **args, int kwm)
 		defproxy.orgto_hdr_len = 0;
 		free(defproxy.server_id_hdr_name);
 		defproxy.server_id_hdr_len = 0;
+		free(defproxy.http_check_send_hdr_name);
+		defproxy.http_check_send_hdr_len = 0;
 		free(defproxy.expect_str);
 		regex_free(defproxy.expect_regex);
 		defproxy.expect_regex = NULL;
@@ -2738,6 +2745,25 @@ stats_error_parsing:
 			curproxy->options2 |= PR_O2_CHK_SNDST;
 			if (alertif_too_many_args_idx(0, 1, file, linenum, args, &err_code))
 				goto out;
+		}
+		else if (strcmp(args[1], "send-name-header") == 0) {
+			/* send server name in healthcheck header */
+			/* set the header name and length into the proxy structure */
+			if (warnifnotcap(curproxy, PR_CAP_BE, file, linenum, args[1], NULL))
+				err_code |= ERR_WARN;
+
+			if (!*args[2]) {
+				ha_alert("parsing [%s:%d] : '%s' requires a header string.\n",
+					 file, linenum, args[1]);
+				err_code |= ERR_ALERT | ERR_FATAL;
+				goto out;
+			}
+
+			/* set the desired header name, in lower case */
+			free(curproxy->http_check_send_hdr_name);
+			curproxy->http_check_send_hdr_name = strdup(args[2]);
+			curproxy->http_check_send_hdr_len  = strlen(curproxy->http_check_send_hdr_name);
+			ist2bin_lc(curproxy->http_check_send_hdr_name, ist2(curproxy->http_check_send_hdr_name, curproxy->http_check_send_hdr_len));
 		}
 		else if (strcmp(args[1], "expect") == 0) {
 			const char *ptr_arg;

@@ -2436,10 +2436,11 @@ hash-type                                 X          -         X         X
 http-check disable-on-404                 X          -         X         X
 http-check expect                         -          -         X         X
 http-check send-state                     X          -         X         X
+http-check send-name-header               X          -         X         X
 http-request                              -          X         X         X
 http-response                             -          X         X         X
 http-reuse                                X          -         X         X
-http-send-name-header                     -          -         X         X
+http-send-name-header                     X          -         X         X
 id                                        -          X         X         X
 ignore-persist                            -          -         X         X
 load-server-state-from-file               X          -         X         X
@@ -4140,6 +4141,16 @@ http-check send-state
            scur=13/22; qcur=0
 
   See also : "option httpchk", "http-check disable-on-404"
+
+
+http-check send-name-header [<header>]
+  Add the server name to a request. Use the header string given by <header>
+  May be used in sections:   defaults | frontend | listen | backend
+                               yes    |    no    |   yes  |   yes
+  Arguments :
+    <header>  The header string to use to send the server name
+
+  See also : "option httpchk", "http-send-name-header"
 
 
 http-request <action> [options...] [ { if | unless } <condition> ]
